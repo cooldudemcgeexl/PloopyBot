@@ -56,11 +56,15 @@ def main():
     while True:
         # Probably going to change this to an async implementation in the future
         # Sticking with synchronous + sleep as this bot only has one function atm
-        api.update_status(get_random_passage())
-        waitTime = random.randint(2000,40000)
-        print("Waiting for %d seconds..." % waitTime)
-        logger.info("Waiting for %d seconds..." % waitTime)
-        time.sleep(waitTime)
+        try:
+            api.update_status(get_random_passage())
+            waitTime = random.randint(2000,40000)
+            print("Waiting for %d seconds..." % waitTime)
+            logger.info("Waiting for %d seconds..." % waitTime)
+            time.sleep(waitTime)
+        except:
+            logger.error("Invalid message chosen")
+
 
 # Moved passage list here due to reliance on globals
 # Will update to better implementation
