@@ -341,5 +341,5 @@ healthchecksdb
 
 # Project Specific files/directories
 *.env
-PloopyEnv/
+**/PloopyEnv/
 wimpoutput.csv

@@ -1,18 +1,13 @@
 import os
 import random
-import asyncio
 import tweepy
 import logging
 import time
 from textwrap import wrap
-
 from dotenv import load_dotenv
 
 logger = logging.getLogger()
 load_dotenv()
-
-
-
 
 def create_api():
     API_KEY = os.getenv("API_KEY")
@@ -67,7 +62,9 @@ def main():
         logger.info("Waiting for %d seconds..." % waitTime)
         time.sleep(waitTime)
 
-passageList= pull_passage_list()
+# Moved passage list here due to reliance on globals
+# Will update to better implementation
+passageList = pull_passage_list()
 
 if __name__ == "__main__":
     main()
