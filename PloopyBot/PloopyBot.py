@@ -3,10 +3,16 @@ import random
 import tweepy
 import logging
 import time
+from datetime import datetime
 from textwrap import wrap
 from dotenv import load_dotenv
 
+logging.basicConfig(
+    handlers=[logging.FileHandler('botlog.log', 'a', 'utf-8')],
+    level=logging.INFO, 
+    format='%(asctime)s [%(levelname)s] - %(message)s')
 logger = logging.getLogger()
+
 load_dotenv()
 
 def create_api():
@@ -38,9 +44,9 @@ def get_random_passage():
     # Removing quotes, comma, and newline. These will always occupy the same positions in the string.
     passageText = passageText[1:-3]
     if len(passageText) > 280:
-        lines = wrap(passageText,280)
+        lines = wrap(passageText,270)
         passageText = random.choice(lines)
-    logger.info("Returned message: %s" % passageText)
+    logger.info("Returned message of length %d: %s" % (len(passageText),passageText))
     return passageText
 
 def pull_passage_list():
@@ -57,7 +63,9 @@ def main():
         # Probably going to change this to an async implementation in the future
         # Sticking with synchronous + sleep as this bot only has one function atm
         try:
-            api.update_status(get_random_passage())
+            newStatus = get_random_passage()
+            print("[" + str(datetime.now()) + "] Sent message: " + newStatus)
+            api.update_status(status=newStatus)
             waitTime = random.randint(2000,40000)
             print("Waiting for %d seconds..." % waitTime)
             logger.info("Waiting for %d seconds..." % waitTime)
