@@ -15,6 +15,17 @@ logger = logging.getLogger()
 
 load_dotenv()
 
+class ReplyStreamListener(tweepy.StreamListener):
+
+    def on_status(self, status):
+        bot = api.me()
+        if status.user.id != bot.id:
+            try:
+                api.update_status(status = "ZOO-WEE MAMA!",in_reply_to_status_id = status.id, auto_populate_reply_metadata = True)
+                logger.info("Replied to user @%s" % status.user.screen_name)
+            except:
+                logger.error("Could not send reply", exec_info = True)
+
 def create_api():
     API_KEY = os.getenv("API_KEY")
     API_KEY_SECRET = os.getenv("API_KEY_SECRET")
@@ -55,28 +66,36 @@ def pull_passage_list():
     inputFile.close()
     return passageList
 
+
 def main():
-    api = create_api()
-   # passageList = pull_passage_list()
+
+    # Setting up listener for replying
+    replyListener = ReplyStreamListener()
+    replyStream = tweepy.Stream(auth = api.auth,listener = replyListener)
+    replyStream.filter(follow=[os.getenv("BOT_ID")], is_async = True)
+    
+    # Setting min and max wait times as defined in .env
+    MIN_TIME = int(os.getenv("MIN_TIME"))
+    MAX_TIME = int(os.getenv("MAX_TIME"))
     random.seed()
+
     while True:
         # Probably going to change this to an async implementation in the future
         # Sticking with synchronous + sleep as this bot only has one function atm
         try:
             newStatus = get_random_passage()
-            print("[" + str(datetime.now()) + "] Sent message: " + newStatus)
             api.update_status(status=newStatus)
-            waitTime = random.randint(2000,40000)
-            print("Waiting for %d seconds..." % waitTime)
+            waitTime = random.randint(MIN_TIME,MAX_TIME)
             logger.info("Waiting for %d seconds..." % waitTime)
             time.sleep(waitTime)
         except:
-            logger.error("Invalid message chosen")
+            logger.error("Invalid message chosen", exec_info = True)
 
 
 # Moved passage list here due to reliance on globals
 # Will update to better implementation
 passageList = pull_passage_list()
+api = create_api()
 
 if __name__ == "__main__":
     main()
