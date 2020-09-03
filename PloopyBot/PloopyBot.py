@@ -60,9 +60,12 @@ def get_random_passage():
     passageText = passageText[1:-3]
     if len(passageText) > 280:
         lines = wrap(passageText,270)
-        passageText = random.choice(lines)
-    logger.info("Returned message of length %d: %s" % (len(passageText),passageText))
-    return passageText
+        passageText = lines
+        logger.info("Returned multipart message. Parts: %d" % len(passageText))
+        return passageText
+    else:
+        logger.info("Returned message of length %d" % len(passageText))
+        return passageText
 
 def pull_passage_list():
     inputFile = open(os.getenv("INPUT_FILE"),'r', encoding = 'utf-8')
@@ -88,7 +91,17 @@ def main():
         # Sticking with synchronous + sleep as this bot only has one function atm
         try:
             newStatus = get_random_passage()
-            api.update_status(status=newStatus)
+            if type(newStatus) is list:
+                tweetNumber = 1
+                totalTweets = len(newStatus)
+                for statusPart in newStatus:
+                    partialTweet = "%s (%d/%d)" % (statusPart, tweetNumber, totalTweets)
+                    api.update_status(status=partialTweet)
+                    logger.info("Sent tweet: %s" % partialTweet)
+                    tweetNumber += 1
+            else:
+                api.update_status(status=newStatus)
+                logger.info("Sent tweet: %s" % newStatus)
             waitTime = random.randint(MIN_TIME,MAX_TIME)
             logger.info("Waiting for %d seconds..." % waitTime)
             time.sleep(waitTime)
