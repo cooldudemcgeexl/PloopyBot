@@ -24,7 +24,11 @@ class ReplyStreamListener(tweepy.StreamListener):
                 api.update_status(status = "ZOO-WEE MAMA!",in_reply_to_status_id = status.id, auto_populate_reply_metadata = True)
                 logger.info("Replied to user @%s" % status.user.screen_name)
             except:
-                logger.error("Could not send reply", exec_info = True)
+                logger.error("Could not send reply", exc_info = True)
+
+    def on_error(self, status_code):
+        logger.error("Returned error code %d" % status_code)
+
 
 def create_api():
     API_KEY = os.getenv("API_KEY")
@@ -89,7 +93,7 @@ def main():
             logger.info("Waiting for %d seconds..." % waitTime)
             time.sleep(waitTime)
         except:
-            logger.error("Invalid message chosen", exec_info = True)
+            logger.error("Invalid message chosen", exc_info = True)
 
 
 # Moved passage list here due to reliance on globals
