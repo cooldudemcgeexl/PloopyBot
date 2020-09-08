@@ -21,7 +21,7 @@ class ReplyStreamListener(tweepy.StreamListener):
         bot = api.me()
         if status.user.id != bot.id:
             try:
-                api.update_status(status = "ZOO-WEE MAMA!",in_reply_to_status_id = status.id, auto_populate_reply_metadata = True)
+                api.update_status(status = "ZOO-WEE MAMA!", in_reply_to_status_id = status.id, auto_populate_reply_metadata = True)
                 logger.info("Replied to user @%s" % status.user.screen_name)
             except:
                 logger.error("Could not send reply", exc_info = True)
@@ -39,7 +39,7 @@ def create_api():
     auth = tweepy.OAuthHandler(API_KEY,API_KEY_SECRET)
     auth.set_access_token(ACCESS_TOKEN,ACCESS_TOKEN_SECRET)
 
-    api = tweepy.API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify = True)
+    api = tweepy.API(auth,wait_on_rate_limit=True, wait_on_rate_limit_notify = True)
 
     try:
         api.verify_credentials()
@@ -59,7 +59,9 @@ def get_random_passage():
     # Removing quotes, comma, and newline. These will always occupy the same positions in the string.
     passageText = passageText[1:-3]
     if len(passageText) > 280:
-        lines = wrap(passageText,270)
+        # Wrapping text at 260 characters, going higher still seemed to result in getting 
+        # rejected due to length
+        lines = wrap(passageText,260)
         passageText = lines
         logger.info("Returned multipart message. Parts: %d" % len(passageText))
         return passageText
@@ -76,7 +78,7 @@ def pull_passage_list():
 
 def main():
 
-    # Setting up listener for replying
+    # Setting up async listener for replying
     replyListener = ReplyStreamListener()
     replyStream = tweepy.Stream(auth = api.auth,listener = replyListener)
     replyStream.filter(follow=[os.getenv("BOT_ID")], is_async = True)
@@ -85,18 +87,25 @@ def main():
     MIN_TIME = int(os.getenv("MIN_TIME"))
     MAX_TIME = int(os.getenv("MAX_TIME"))
     random.seed()
-
+    
     while True:
         # Probably going to change this to an async implementation in the future
         # Sticking with synchronous + sleep as this bot only has one function atm
         try:
             newStatus = get_random_passage()
+            # Handling for multi-part tweet
             if type(newStatus) is list:
                 tweetNumber = 1
                 totalTweets = len(newStatus)
                 for statusPart in newStatus:
                     partialTweet = "%s (%d/%d)" % (statusPart, tweetNumber, totalTweets)
-                    api.update_status(status=partialTweet)
+                    # Create thread with previous tweets in sequence, pulls latest tweet from timeline as 
+                    # tweet to reply to.
+                    if tweetNumber > 1:
+                        latestBotTweet = api.user_timeline()[0].id
+                        api.update_status(status=partialTweet, in_reply_to_status_id = latestBotTweet, auto_populate_reply_metadata = True)
+                    else:
+                        api.update_status(status=partialTweet)
                     logger.info("Sent tweet: %s" % partialTweet)
                     tweetNumber += 1
             else:
