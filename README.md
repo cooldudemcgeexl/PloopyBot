@@ -18,5 +18,9 @@ See the wiki for detailed instructions on using the bot.
 ## Contributing
 Contributions are welcome. Please open a pull request with any suggested changes.
 
+## Thanks to
+- [Tweepy](https://www.tweepy.org/) - For their amazing library.
+- [Jeff Kinney](https://wimpykid.com/) - For writing the *Diary of a Wimpy Kid* series.
+
 ## License
 This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
